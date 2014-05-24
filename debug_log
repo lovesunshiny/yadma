@@ -1,0 +1,372 @@
+commit 71929f025099bb9e9b0dc154e895d00d2559306d
+Author: taiyi-tek <taiyi-tek>
+Date:   Sun Dec 8 17:44:06 2013 +0800
+
+    change the ambigous verbose; real reason of crash is YADMA_WRITE_REG(v, addr) parameter's order
+
+/* LOG-3
+ * [ 6040.704020] Came to yadma_cleanup
+[ 6040.704023] pci unregister driver.
+[ 6040.704032] Came to yadma_remove
+[ 6041.695882] Disable stats timer.
+[ 6041.695885] iounmap: BAR 0 virt = f9da0000.
+[ 6041.695887] BUG: scheduling while atomic: rmmod/9730/0x10000200
+[ 6041.695888] Modules linked in: yadma(O-) bnep rfcomm bluetooth snd_hda_codec_realtek coretemp aesni_intel cryptd aes_i586 ppdev snd_hda_intel snd_hda_codec snd_hwdep snd_pcm snd_seq_midi snd_rawmidi snd_seq_midi_event snd_seq snd_timer snd_seq_device snd parport_pc mac_hid i915 mei psmouse serio_raw drm_kms_helper drm soundcore snd_page_alloc lpc_ich i2c_algo_bit video lp parport microcode e1000e r8169
+[ 6041.695911] Pid: 9730, comm: rmmod Tainted: G        W  O 3.5.017 #8
+[ 6041.695912] Call Trace:
+[ 6041.695918]  [<c15a81db>] __schedule_bug+0x52/0x5e
+[ 6041.695921]  [<c15b00ee>] __schedule+0x75e/0x770
+[ 6041.695926]  [<c1037ac8>] ? default_spin_lock_flags+0x8/0x10
+[ 6041.695928]  [<c10462b6>] ? console_unlock+0x2c6/0x480
+[ 6041.695930]  [<c1037ac8>] ? default_spin_lock_flags+0x8/0x10
+[ 6041.695934]  [<c107373b>] __cond_resched+0x1b/0x30
+[ 6041.695936]  [<c15b0176>] _cond_resched+0x26/0x30
+[ 6041.695938]  [<c103f9f4>] mmiotrace_iounmap+0x14/0x120
+[ 6041.695941]  [<c1038d79>] iounmap+0x39/0xe0
+[ 6041.695942]  [<c15a7cf4>] ? printk+0x4d/0x4f
+[ 6041.695946]  [<fa17f95d>] yadma_remove+0xb0/0x16b [yadma]
+[ 6041.695950]  [<c12f1fed>] pci_device_remove+0x2d/0xe0
+[ 6041.695953]  [<c13a9acb>] __device_release_driver+0x5b/0xb0
+[ 6041.695955]  [<c13aa08f>] driver_detach+0x8f/0xa0
+[ 6041.695957]  [<c13a9712>] bus_remove_driver+0x62/0xa0
+[ 6041.695959]  [<c13aa4e9>] driver_unregister+0x49/0x80
+[ 6041.695961]  [<c12f17f2>] pci_unregister_driver+0x32/0x80
+[ 6041.695963]  [<fa17fa6f>] yadma_cleanup+0x57/0x5e8 [yadma]
+[ 6041.695967]  [<c10a0d9f>] sys_delete_module+0x11f/0x270
+[ 6041.695970]  [<c1127046>] ? vm_munmap+0x46/0x60
+[ 6041.695974]  [<c15b7f9f>] sysenter_do_call+0x12/0x28
+[ 6041.696018] Unregistering char device driver 263192576
+[ 6041.696021] PCI release regions and disable device.
+[ 6041.696030] unregister sysfs files.
+[ 6041.696035] Attribute group (null) are removed.
+[ 6041.696035] Remove sys bin_attribute file TxMemCh1.
+[ 6041.696036] Remove sys bin_attribute file TxMemCh2.
+[ 6041.696037] Remove sys bin_attribute file RxMemCh1.
+[ 6041.696038] Remove sys bin_attribute file RxMemCh2.
+[ 6041.696039] Destroy DMA channels...
+[ 6041.696040] Free a DMA Buffer size: 196656, virt 39383736, phys 31203a30.
+[ 6041.696041] Free a DMA Buffer size: 196656, virt 39383736, phys 31203a31.
+[ 6041.696042] Free a DMA Buffer size: 196656, virt 39383736, phys 31203a32.
+[ 6041.696044] Free a DMA Buffer size: 196656, virt 39383736, phys 31203a33.
+[ 6041.696066] GUI user open? 0
+[ 6041.696068] netlink destroyed, sock = -260868608.
+
+*/
+
+commit 1534a4fa0d899012047dd71a7bc79696c7f150f2
+Author: taiyi-tek <taiyi-tek>
+Date:   Sun Dec 8 19:07:57 2013 +0800
+
+    register sysfs; free private data; iounmap without spin_lock protection
+
+
+
+root@tsinghua:/opt/work/yadma/driver/yadma# insmod yadma.ko
+root@tsinghua:/opt/work/yadma/driver/yadma# dmesg -c
+[ 8409.548117] yadmaPrivData at 0xf0d55d80
+[ 8409.548125] netlink initialized, sock = 0xefc0e600.
+[ 8409.548126] register proc files.
+[ 8409.548132] Create procfs /proc/yadma/TxFreqCh1
+[ 8409.548134] Create procfs /proc/yadma/RxFreqCh1
+[ 8409.548135] Create procfs /proc/yadma/TxFreqCh2
+[ 8409.548136] Create procfs /proc/yadma/RxFreqCh2
+[ 8409.548138] Create procfs /proc/yadma/TxGainCh1
+[ 8409.548139] Create procfs /proc/yadma/RxGainCh1
+[ 8409.548140] Create procfs /proc/yadma/TxGainCh2
+[ 8409.548141] Create procfs /proc/yadma/RxGainCh2
+[ 8409.548143] Create procfs /proc/yadma/RSSICh1
+[ 8409.548144] Create procfs /proc/yadma/RSSICh2
+[ 8409.548145] Create procfs /proc/yadma/RFStateCh1
+[ 8409.548147] Create procfs /proc/yadma/RFStateCh2
+[ 8409.548148] Create procfs /proc/yadma/SysTiming
+[ 8409.548149] Create procfs /proc/yadma/FPGAReset
+[ 8409.548150] Create procfs /proc/yadma/IrqInterval
+[ 8409.548152] Create procfs /proc/yadma/TxMemCh1
+[ 8409.548153] Create procfs /proc/yadma/TxMemCh2
+[ 8409.548154] Create procfs /proc/yadma/RxMemCh1
+[ 8409.548156] Create procfs /proc/yadma/RxMemCh2
+[ 8409.548156] Inserting YADMA driver in kernel.
+[ 8409.548190] Allocated a DMA Buffer size: 230400, virt f0e40000, phys 30e40000.
+[ 8409.548191] Allocate DMA memory for channel 0 success @0xf15ac5c0 .
+[ 8409.548211] Allocated a DMA Buffer size: 230400, virt f0ec0000, phys 30ec0000.
+[ 8409.548212] Allocate DMA memory for channel 1 success @0xf15ac6c0 .
+[ 8409.548233] Allocated a DMA Buffer size: 230400, virt f1600000, phys 31600000.
+[ 8409.548234] Allocate DMA memory for channel 2 success @0xf15ac280 .
+[ 8409.548254] Allocated a DMA Buffer size: 230400, virt efc40000, phys 2fc40000.
+[ 8409.548255] Allocate DMA memory for channel 3 success @0xf15ac700 .
+[ 8409.548264] PCI device enable success.
+[ 8409.548265] PCI device is set as master.
+[ 8409.548271] Request PCI regions success.
+[ 8409.548272] Set DMA mask as 32bits.
+[ 8409.548285] ioremap: [BAR 0] Base PA f7c08000 Len 32768 VA f9da0000
+[ 8409.548286] Bar mask is 0x1
+[ 8409.548287] DMA interrupt disable.
+[ 8409.548289] Set pci drvdata.
+[ 8409.548289] Setup char dev.
+[ 8409.548291] Allocate and add char dev  0xfb00000
+[ 8409.548292] Device registered with major number 251
+[ 8409.548293] probe: Starting stats timer fa10d478 after 250
+[ 8409.548302] ------------[ cut here ]------------us 0000:00
+000e0000-000fffff : reserved
+  000e0000-000e3fff : PCI Bus 0000:00
+  000e4000-000e7fff : PCI Bus 0000:00
+  000f0000-000fffff : System ROM
+00100000-1fffffff : System RAM
+  01000000-015b93ab : Kernel code
+  015b93ac-0187213f : Kernel data
+  01935000-01a0efff : Kernel bss
+  18000000-1fffffff : Crash kernel
+20000000-201fffff : reserved
+  20000000-201fffff : pnp 00:12
+20200000-3fffffff : System RAM
+40000000-401fffff : reserved
+  40000000-401fffff : pnp 00:12
+40200000-d943cfff : System RAM
+d943d000-d99dcfff : reserved
+d99dd000-d9be7fff : System RAM
+d9be8000-da287fff : ACPI Non-volatile Storage
+da288000-da693fff : reserved
+da694000-da694fff : System RAM
+da695000-da6d7fff : ACPI Non-volatile Storage
+da6d8000-dadc8fff : System RAM
+dadc9000-daff1fff : reserved
+daff2000-daffffff : System RAM
+db000000-db7fffff : RAM buffer
+db800000-df9fffff : reserved
+dfa00000-feafffff : PCI Bus 0000:00
+  dfa00000-dfa00fff : pnp 00:11
+  e0000000-efffffff : 0000:00:02.0
+  f0000000-f00fffff : PCI Bus 0000:03
+    f0000000-f0003fff : 0000:03:00.0
+      f0000000-f0003fff : r8169
+    f0004000-f0004fff : 0000:03:00.0
+      f0004000-f0004fff : r8169
+  f7800000-f7bfffff : 0000:00:02.0
+  f7c00000-f7cfffff : PCI Bus 0000:01
+    f7c00000-f7c07fff : 0000:01:00.0
+    f7c08000-f7c0ffff : 0000:01
+[ 8409.548307] WARNING: at fs/sysfs/dir.c:529 sysfs_add_one+0x9b/0xd0()
+[ 8409.548308] Hardware name: FSC-1817V2NA
+[ 8409.548309] sysfs: cannot create duplicate filename '/devices/pci0000:00/0000:00:01.0/0000:01:00.0/IrqInterval'
+[ 8409.548310] Modules linked in: yadma(O+) bnep rfcomm bluetooth snd_hda_codec_realtek coretemp aesni_intel cryptd aes_i586 ppdev snd_hda_intel snd_hda_codec snd_hwdep snd_pcm snd_seq_midi snd_rawmidi snd_seq_midi_event snd_seq snd_timer snd_seq_device snd parport_pc mac_hid i915 mei psmouse serio_raw drm_kms_helper drm soundcore snd_page_alloc lpc_ich i2c_algo_bit video lp parport microcode e1000e r8169 [last unloaded: yadma]
+[ 8409.548332] Pid: 10178, comm: insmod Tainted: G    B   W  O 3.5.017 #8
+[ 8409.548333] Call Trace:
+[ 8409.548338]  [<c1044852>] warn_slowpath_common+0x72/0xa0
+[ 8409.548341]  [<c11ab77b>] ? sysfs_add_one+0x9b/0xd0
+[ 8409.548343]  [<c11ab77b>] ? sysfs_add_one+0x9b/0xd0
+[ 8409.548345]  [<c1044923>] warn_slowpath_fmt+0x33/0x40
+[ 8409.548347]  [<c11ab77b>] sysfs_add_one+0x9b/0xd0
+[ 8409.548349]  [<c11aaaf8>] sysfs_add_file_mode+0x78/0xb0
+[ 8409.548352]  [<c11ad243>] internal_create_group+0xd3/0x200
+[ 8409.548355]  [<c15b126d>] ? _raw_spin_lock_irqsave+0x2d/0x40
+[ 8409.548358]  [<c11ad3a1>] sysfs_create_group+0x11/0x20
+[ 8409.548362]  [<fa10a734>] register_sysfs_files+0x1a/0x87 [yadma]
+[ 8409.548365]  [<fa10ade3>] yadma_pcie_probe+0x535/0x55c [yadma]
+[ 8409.548368]  [<c12f1f37>] pci_device_probe+0x87/0x110
+[ 8409.548370]  [<c11ac407>] ? sysfs_create_link+0x17/0x20
+[ 8409.548374]  [<c13a9d93>] driver_probe_device+0x63/0x1e0
+[ 8409.548376]  [<c12f1d03>] ? pci_match_device+0xb3/0xc0
+[ 8409.548378]  [<c13a9fa1>] __driver_attach+0x91/0xa0
+[ 8409.548380]  [<c13a9f10>] ? driver_probe_device+0x1e0/0x1e0
+[ 8409.548382]  [<c13a8562>] bus_for_each_dev+0x42/0x80
+[ 8409.548384]  [<c13a987e>] driver_attach+0x1e/0x20
+[ 8409.548386]  [<c13a9f10>] ? driver_probe_device+0x1e0/0x1e0
+[ 8409.548388]  [<c13a95d7>] bus_add_driver+0x187/0x260
+[ 8409.548390]  [<c12f1fc0>] ? pci_device_probe+0x110/0x110
+[ 8409.548392]  [<c13aa58a>] driver_register+0x6a/0x140
+[ 8409.548394]  [<fa111000>] ? 0xfa110fff
+[ 8409.548395]  [<fa111000>] ? 0xfa110fff
+[ 8409.548397]  [<c12f0fa2>] __pci_register_driver+0x42/0xb0
+[ 8409.548399]  [<fa111000>] ? 0xfa110fff
+[ 8409.548402]  [<fa1110e4>] yadma_init+0xe4/0x1000 [yadma]
+[ 8409.548404]  [<c1003112>] do_one_initcall+0x112/0x160
+[ 8409.548408]  [<c109f882>] ? set_section_ro_nx+0x62/0x80
+[ 8409.548410]  [<c10a1f15>] sys_init_module+0xed5/0x1b50
+[ 8409.548414]  [<c106d3c6>] ? lg_local_unlock+0x16/0x20
+[ 8409.548417]  [<c1167cca>] ? mntput_no_expire+0x3a/0x120
+[ 8409.548420]  [<c15b7f9f>] sysenter_do_call+0x12/0x28
+[ 8409.548422] ---[ end trace 64a99bb4be88ef45 ]---
+[ 8409.548429] Bin Attribute TxMemCh1 are created.
+[ 8409.548430] Bin Attribute TxMemCh2 are created.
+[ 8409.548431] Bin Attribute RxMemCh1 are created.
+[ 8409.548432] Bin Attribute RxMemCh2 are created.
+[ 8409.548433] End of probe
+
+root@tsinghua:/opt/work/yadma/driver/yadma# rmmod yadma
+root@tsinghua:/opt/work/yadma/driver/yadma# dmesg -c
+[ 8722.309397] Came to yadma_cleanup
+[ 8722.309399] pci unregister driver.
+[ 8722.309408] Came to yadma_remove
+[ 8723.301261] Disable stats timer.
+[ 8723.301264] iounmap: BAR 0 virt = f9da0000.
+[ 8723.301308] Unregistering char device driver 0xfb00000
+[ 8723.301311] PCI release regions and disable device.
+[ 8723.301320] unregister sysfs files.
+[ 8723.301324] Attribute group (null) are removed.
+[ 8723.301326] Remove sys bin_attribute file TxMemCh1.
+[ 8723.301327] Remove sys bin_attribute file TxMemCh2.
+[ 8723.301328] Remove sys bin_attribute file RxMemCh1.
+[ 8723.301329] Remove sys bin_attribute file RxMemCh2.
+[ 8723.301330] Destroy DMA channels...
+[ 8723.301331] Free a DMA Buffer size: 196656, virt 39383736, phys 31203a30.
+[ 8723.301333] Free a DMA Buffer size: 196656, virt 39383736, phys 31203a31.
+[ 8723.301334] Free a DMA Buffer size: 196656, virt 39383736, phys 31203a32.
+[ 8723.301335] Free a DMA Buffer size: 196656, virt 39383736, phys 31203a33.
+[ 8723.301356] netlink destroyed, sock = 0xefc0e600.
+[ 8723.301368] /proc/yadma are removed.
+
+
+
+
+
+
+
+
+commit 6424bc15731d0e0d7db2c2f71899fde18f94cfa9
+Author: taiyi-tek <taiyi-tek>
+Date:   Sun Dec 8 19:27:55 2013 +0800
+
+    remove unneccessary kfree(yadmaPrivData)
+
+
+
+
+
+root@tsinghua:/opt/work/yadma/driver/yadma# dmesg -c
+[   73.302927] yadmaPrivData at 0xf037e540
+[   73.302935] netlink initialized, sock = 0xf39e2800.
+[   73.302936] register proc files.
+[   73.302944] Create procfs /proc/yadma/TxFreqCh1
+[   73.302946] Create procfs /proc/yadma/RxFreqCh1
+[   73.302947] Create procfs /proc/yadma/TxFreqCh2
+[   73.302948] Create procfs /proc/yadma/RxFreqCh2
+[   73.302949] Create procfs /proc/yadma/TxGainCh1
+[   73.302950] Create procfs /proc/yadma/RxGainCh1
+[   73.302951] Create procfs /proc/yadma/TxGainCh2
+[   73.302953] Create procfs /proc/yadma/RxGainCh2
+[   73.302954] Create procfs /proc/yadma/RSSICh1
+[   73.302955] Create procfs /proc/yadma/RSSICh2
+[   73.302957] Create procfs /proc/yadma/RFStateCh1
+[   73.302958] Create procfs /proc/yadma/RFStateCh2
+[   73.302959] Create procfs /proc/yadma/SysTiming
+[   73.302961] Create procfs /proc/yadma/FPGAReset
+[   73.302962] Create procfs /proc/yadma/IrqInterval
+[   73.302963] Create procfs /proc/yadma/TxMemCh1
+[   73.302965] Create procfs /proc/yadma/TxMemCh2
+[   73.302966] Create procfs /proc/yadma/RxMemCh1
+[   73.302967] Create procfs /proc/yadma/RxMemCh2
+[   73.302968] Inserting YADMA driver in kernel.
+[   73.303029] Allocated a DMA Buffer size: 230400, virt f0540000, phys 30540000.
+[   73.303030] Allocate DMA memory for channel 0 success @0xef4cccc0 .
+[   73.303083] Allocated a DMA Buffer size: 230400, virt f0580000, phys 30580000.
+[   73.303085] Allocate DMA memory for channel 1 success @0xef4ccb00 .
+[   73.303122] Allocated a DMA Buffer size: 230400, virt f05c0000, phys 305c0000.
+[   73.303123] Allocate DMA memory for channel 2 success @0xef4cce80 .
+[   73.303168] Allocated a DMA Buffer size: 230400, virt f0e00000, phys 30e00000.
+[   73.303169] Allocate DMA memory for channel 3 success @0xef4ccc00 .
+[   73.303180] PCI device enable success.
+[   73.303181] PCI device is set as master.
+[   73.303186] Request PCI regions success.
+[   73.303187] Set DMA mask as 32bits.
+[   73.303204] ioremap: [BAR 0] Base PA f7c08000 Len 32768 VA f8c30000
+[   73.303205] Bar mask is 0x1
+[   73.303206] DMA interrupt disable.
+[   73.303207] Set pci drvdata.
+[   73.303208] Setup char dev.
+[   73.303210] Allocate and add char dev  0xfb00000
+[   73.303211] Device registered with major number 251
+[   73.303212] probe: Starting stats timer f9055478 after 250
+[   73.303223] ------------[ cut here ]------------
+[   73.303231] WARNING: at fs/sysfs/dir.c:529 sysfs_add_one+0x9b/0xd0()
+[   73.303232] Hardware name: FSC-1817V2NA
+[   73.303233] sysfs: cannot create duplicate filename '/devices/pci0000:00/0000:00:01.0/0000:01:00.0/yadma/IrqInterval'
+[   73.303234] Modules linked in: yadma(O+) rfcomm bnep bluetooth snd_hda_codec_realtek snd_hda_intel snd_hda_codec snd_hwdep snd_pcm snd_seq_midi snd_rawmidi snd_seq_midi_event snd_seq ppdev snd_timer snd_seq_device snd parport_pc coretemp aesni_intel cryptd aes_i586 i915 mac_hid lpc_ich drm_kms_helper microcode drm psmouse serio_raw mei i2c_algo_bit soundcore lp video parport snd_page_alloc r8169 e1000e
+[   73.303262] Pid: 2354, comm: insmod Tainted: G           O 3.5.017 #8
+[   73.303264] Call Trace:
+[   73.303271]  [<c1044852>] warn_slowpath_common+0x72/0xa0
+[   73.303274]  [<c11ab77b>] ? sysfs_add_one+0x9b/0xd0
+[   73.303276]  [<c11ab77b>] ? sysfs_add_one+0x9b/0xd0
+[   73.303278]  [<c1044923>] warn_slowpath_fmt+0x33/0x40
+[   73.303280]  [<c11ab77b>] sysfs_add_one+0x9b/0xd0
+[   73.303282]  [<c11aaaf8>] sysfs_add_file_mode+0x78/0xb0
+[   73.303285]  [<c11ad243>] internal_create_group+0xd3/0x200
+[   73.303289]  [<c15b126d>] ? _raw_spin_lock_irqsave+0x2d/0x40
+[   73.303291]  [<c11ad3a1>] sysfs_create_group+0x11/0x20
+[   73.303296]  [<f9052734>] register_sysfs_files+0x1a/0x87 [yadma]
+[   73.303299]  [<f9052dd5>] yadma_pcie_probe+0x527/0x54e [yadma]
+[   73.303303]  [<c12f1f37>] pci_device_probe+0x87/0x110
+[   73.303305]  [<c11ac407>] ? sysfs_create_link+0x17/0x20
+[   73.303308]  [<c13a9d93>] driver_probe_device+0x63/0x1e0
+[   73.303310]  [<c12f1d03>] ? pci_match_device+0xb3/0xc0
+[   73.303312]  [<c13a9fa1>] __driver_attach+0x91/0xa0
+[   73.303314]  [<c13a9f10>] ? driver_probe_device+0x1e0/0x1e0
+[   73.303316]  [<c13a8562>] bus_for_each_dev+0x42/0x80
+[   73.303318]  [<c13a987e>] driver_attach+0x1e/0x20
+[   73.303320]  [<c13a9f10>] ? driver_probe_device+0x1e0/0x1e0
+[   73.303322]  [<c13a95d7>] bus_add_driver+0x187/0x260
+[   73.303324]  [<c12f1fc0>] ? pci_device_probe+0x110/0x110
+[   73.303326]  [<c13aa58a>] driver_register+0x6a/0x140
+[   73.303328]  [<f9059000>] ? 0xf9058fff
+[   73.303330]  [<f9059000>] ? 0xf9058fff
+[   73.303331]  [<c12f0fa2>] __pci_register_driver+0x42/0xb0
+[   73.303333]  [<f9059000>] ? 0xf9058fff
+[   73.303336]  [<f90590e4>] yadma_init+0xe4/0x1000 [yadma]
+[   73.303339]  [<c1003112>] do_one_initcall+0x112/0x160
+[   73.303343]  [<c109f882>] ? set_section_ro_nx+0x62/0x80
+[   73.303348]  [<c10a1f15>] sys_init_module+0xed5/0x1b50
+[   73.303357]  [<c106d3c6>] ? lg_local_unlock+0x16/0x20
+[   73.303362]  [<c1167cca>] ? mntput_no_expire+0x3a/0x120
+[   73.303367]  [<c15b7f9f>] sysenter_do_call+0x12/0x28
+[   73.303368] ---[ end trace 889cc8002490fc39 ]---
+[   73.303376] Bin Attribute TxMemCh1 are created.
+[   73.303377] Bin Attribute TxMemCh2 are created.
+[   73.303378] Bin Attribute RxMemCh1 are created.
+[   73.303379] Bin Attribute RxMemCh2 are created.
+[   73.303380] End of probe
+root@tsinghua:/opt/work/yadma/driver/yadma# rmmod yadma
+root@tsinghua:/opt/work/yadma/driver/yadma# dmesg -c
+[  105.424458] Came to yadma_cleanup
+[  105.424462] pci unregister driver.
+[  105.424476] Came to yadma_remove
+[  106.416261] Disable stats timer.
+[  106.416264] iounmap: BAR 0 virt = f8c30000.
+[  106.416308] Unregistering char device driver 0xfb00000
+[  106.416311] PCI release regions and disable device.
+[  106.416319] unregister sysfs files.
+[  106.416322] ------------[ cut here ]------------
+[  106.416328] WARNING: at fs/sysfs/group.c:142 sysfs_remove_group+0xc9/0xd0()
+[  106.416329] Hardware name: FSC-1817V2NA
+[  106.416330] sysfs group f9055118 not found for kobject '0000:01:00.0'
+[  106.416331] Modules linked in: yadma(O-) rfcomm bnep bluetooth snd_hda_codec_realtek snd_hda_intel snd_hda_codec snd_hwdep snd_pcm snd_seq_midi snd_rawmidi snd_seq_midi_event snd_seq ppdev snd_timer snd_seq_device snd parport_pc coretemp aesni_intel cryptd aes_i586 i915 mac_hid lpc_ich drm_kms_helper microcode drm psmouse serio_raw mei i2c_algo_bit soundcore lp video parport snd_page_alloc r8169 e1000e
+[  106.416354] Pid: 2373, comm: rmmod Tainted: G        W  O 3.5.017 #8
+[  106.416355] Call Trace:
+[  106.416361]  [<c1044852>] warn_slowpath_common+0x72/0xa0
+[  106.416363]  [<c11ad479>] ? sysfs_remove_group+0xc9/0xd0
+[  106.416365]  [<c11ad479>] ? sysfs_remove_group+0xc9/0xd0
+[  106.416368]  [<c1044923>] warn_slowpath_fmt+0x33/0x40
+[  106.416370]  [<c11ad479>] sysfs_remove_group+0xc9/0xd0
+[  106.416374]  [<f90527bd>] unregister_sysfs_files+0x1c/0x63 [yadma]
+[  106.416377]  [<f9052f18>] yadma_remove+0x11c/0x157 [yadma]
+[  106.416380]  [<c12f1fed>] pci_device_remove+0x2d/0xe0
+[  106.416384]  [<c13a9acb>] __device_release_driver+0x5b/0xb0
+[  106.416386]  [<c13aa08f>] driver_detach+0x8f/0xa0
+[  106.416388]  [<c13a9712>] bus_remove_driver+0x62/0xa0
+[  106.416390]  [<c13aa4e9>] driver_unregister+0x49/0x80
+[  106.416392]  [<c12f17f2>] pci_unregister_driver+0x32/0x80
+[  106.416395]  [<f9052fa3>] yadma_cleanup+0x50/0xad [yadma]
+[  106.416398]  [<c10a0d9f>] sys_delete_module+0x11f/0x270
+[  106.416402]  [<c1127046>] ? vm_munmap+0x46/0x60
+[  106.416405]  [<c15b7f9f>] sysenter_do_call+0x12/0x28
+[  106.416406] ---[ end trace 889cc8002490fc3a ]---
+[  106.416407] Attribute group yadma are removed.
+[  106.416410] Remove sys bin_attribute file TxMemCh1.
+[  106.416412] Remove sys bin_attribute file TxMemCh2.
+[  106.416413] Remove sys bin_attribute file RxMemCh1.
+[  106.416414] Remove sys bin_attribute file RxMemCh2.
+[  106.416414] Destroy DMA channels...
+[  106.416415] Free a DMA Buffer size: 196656, virt 39383736, phys 31203a30.
+[  106.416418] Free a DMA Buffer size: 196656, virt 39383736, phys 31203a31.
+[  106.416419] Free a DMA Buffer size: 196656, virt 39383736, phys 31203a32.
+[  106.416420] Free a DMA Buffer size: 196656, virt 39383736, phys 31203a33.
+[  106.416440] netlink destroyed, sock = 0xf39e2800.
+[  106.416453] /proc/yadma are removed

@@ -1,0 +1,133 @@
+Kernel Options:
+=========
+#
+## for ftrace
+#
+CONFIG_HAVE_FUNCTION_TRACER=y
+CONFIG_HAVE_FUNCTION_GRAPH_TRACER=y
+CONFIG_HAVE_FUNCTION_GRAPH_FP_TEST=y
+CONFIG_HAVE_DYNAMIC_FTRACE=y
+CONFIG_TRACING=y
+CONFIG_GENERIC_TRACER=y
+CONFIG_TRACING_SUPPORT=y
+CONFIG_FTRACE=y
+CONFIG_FUNCTION_TRACER=y
+CONFIG_FUNCTION_GRAPH_TRACER=y
+CONFIG_DYNAMIC_FTRACE=y
+#
+## for gcov
+#
+CONFIG_GCOV_KERNEL=y
+CONFIG_GCOV_PROFILE_ALL=y
+
+
+
+
+Normal cmd
+=========
+  Demo: 
+	mount -t debugfs debugfs /sys/kernel/debug
+	ln -s /sys/kernel/debug /debug
+	cd /debug
+	echo function_graph > current_tracer
+	echo 1 >tracing_enabled
+	echo "ddstart" > trace_marker
+	dd if=/dev/sda of=/dev/null bs=1k count=5000 skip=2000
+	echo "ddstop" > trace_marker
+	echo 0 >tracing_enabled
+
+  Enable ftrace:
+	sysctl kernel.ftrace_enabled=1
+      or
+    	echo 1 > /proc/sys/kernel/ftrace_enabled
+
+Filter files
+=========
+  set_ftrace_filter:
+	limit the trace to only those functions.
+
+  set_ftrace_notrace:
+	An effect opposite to that of set_ftrace_filter. Any function that is
+	added here will not be traced. If a function exists in both files,
+	the function will _not_ be traced.
+
+  set_ftrace_pid:
+	Only trace a single thread.
+
+  available_filter_functions:
+	This lists the funtions that ftrace has processed and can trace. These
+	are the function names that you can pass to "set_ftrace_filter" or
+	"set_ftrace_notrace".
+
+
+Tracers
+========
+  "function"
+  "function_graph"
+
+  "sched_switch"
+	context switches and wakeups between tasks
+  "irqsoff"
+  	disable intrrupts and saves the trace with the longest max latency.
+	See tracing_max_latency.
+  "preemptoff"
+  "preemptirqsoff"
+
+  "wakeup"
+  	Records the max latency that it takes for the highest priority task to
+	get scheduled after it has been woken up.
+  "hw-branch-tracer"
+
+  "nop"
+  	"trace nothing" tracer. To remove all tracers from tracing simply echo
+	"nop" into current_tracer.
+
+
+My work - use ftrace to trace a kernel module named epl.ko
+=======
+  1 Compile kernel & reboot & mount debugfs
+  	Enable necessary options in kernel_hacking/Trace
+	
+	mount -t debugfs debugfs /sys/kernel/debug
+	ln -s /sys/kernel/debug /debug
+
+  2 Etract the function symbols of epl
+	cat available_filter_functions > /tmp/funcs_without_epl
+	insmod epl.ko
+	cat available_filter_functions > /tmp/funcs_with_epl
+	diff /tmp/funcs_without_epl /tmp/funcs_with_epl > epl_funcs
+	remove the useless info in epl_funcs
+
+	* a) Because when the module is loaded, its symbols are added into
+	* available_filter_functions. When it is unloaded, the symbols are
+	* removed from the file. b) Remove the functions which you don't want
+	* to trace.
+
+  3 You could export symbols of epl.ko as reference[1]
+	nm -s epl.ko | grep " T " | awk '{ print $3 }' > nm_funcs
+	nm -s epl.ko | grep " t " | awk '{ print $3 }' >> nm_funcs
+
+	* but some symbols are not available. The list should be sorted, you
+	* may want use command sort, 
+	*	sort nm_funcs > nm_funcs_sorted
+	*	sort epl_funcs > epl_funcs_sorted
+	*	diff -Nur nm_funcs_sorted epl_funcs_sorted
+	* Maybe you will see nm_funcs contains some functions which are not in
+	* epl_funcs, because there functions have already been in
+	* available_filter_functions. 
+
+  4 trace
+  	insmod epl.ko
+	cat /tmp/epl_funcs > set_ftrace_filter
+    	echo function_graph > current_tracer
+	echo 1 >tracing_enabled
+	cat trace_pipe > /tmp/ftrace_result.txt &
+	echo 0 >tracing_enabled #terminate
+
+	* Here I found that sometimes if I rmmod the module, ftrace may fail
+	* to display some function-names
+
+
+[1] nm  http://hi.baidu.com/zzgmtv/blog/item/d021d7437d38d91f72f05d57.html
+[2] ftrace kernel_src/Documentation/trace/ftrace.txt
+

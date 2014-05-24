@@ -1,0 +1,165 @@
+
+demo:     file format elf32-i386
+
+SYMBOL TABLE:
+08048154 l    d  .interp	00000000              .interp
+08048168 l    d  .note.ABI-tag	00000000              .note.ABI-tag
+08048188 l    d  .note.gnu.build-id	00000000              .note.gnu.build-id
+080481ac l    d  .gnu.hash	00000000              .gnu.hash
+080481cc l    d  .dynsym	00000000              .dynsym
+0804839c l    d  .dynstr	00000000              .dynstr
+0804849e l    d  .gnu.version	00000000              .gnu.version
+080484d8 l    d  .gnu.version_r	00000000              .gnu.version_r
+08048518 l    d  .rel.dyn	00000000              .rel.dyn
+08048520 l    d  .rel.plt	00000000              .rel.plt
+080485f8 l    d  .init	00000000              .init
+08048630 l    d  .plt	00000000              .plt
+080487f0 l    d  .text	00000000              .text
+08049fec l    d  .fini	00000000              .fini
+0804a008 l    d  .rodata	00000000              .rodata
+0804a7c8 l    d  .eh_frame_hdr	00000000              .eh_frame_hdr
+0804a914 l    d  .eh_frame	00000000              .eh_frame
+0804bf14 l    d  .ctors	00000000              .ctors
+0804bf1c l    d  .dtors	00000000              .dtors
+0804bf24 l    d  .jcr	00000000              .jcr
+0804bf28 l    d  .dynamic	00000000              .dynamic
+0804bff0 l    d  .got	00000000              .got
+0804bff4 l    d  .got.plt	00000000              .got.plt
+0804c080 l    d  .data	00000000              .data
+0804c160 l    d  .bss	00000000              .bss
+00000000 l    d  .comment	00000000              .comment
+00000000 l    d  .debug_aranges	00000000              .debug_aranges
+00000000 l    d  .debug_info	00000000              .debug_info
+00000000 l    d  .debug_abbrev	00000000              .debug_abbrev
+00000000 l    d  .debug_line	00000000              .debug_line
+00000000 l    d  .debug_str	00000000              .debug_str
+00000000 l    d  .debug_loc	00000000              .debug_loc
+00000000 l    df *ABS*	00000000              crtstuff.c
+0804bf14 l     O .ctors	00000000              __CTOR_LIST__
+0804bf1c l     O .dtors	00000000              __DTOR_LIST__
+0804bf24 l     O .jcr	00000000              __JCR_LIST__
+08048820 l     F .text	00000000              __do_global_dtors_aux
+0804c160 l     O .bss	00000001              completed.6159
+0804c164 l     O .bss	00000004              dtor_idx.6161
+08048880 l     F .text	00000000              frame_dummy
+00000000 l    df *ABS*	00000000              crtstuff.c
+0804bf18 l     O .ctors	00000000              __CTOR_END__
+0804ae44 l     O .eh_frame	00000000              __FRAME_END__
+0804bf24 l     O .jcr	00000000              __JCR_END__
+08049fc0 l     F .text	00000000              __do_global_ctors_aux
+00000000 l    df *ABS*	00000000              yadma_demo.c
+0804c0a0 l     O .data	0000004c              yadmaFileNames
+0804c180 l     O .bss	00001000              cmd_out_buffer
+0804d180 l     O .bss	00000004              is_dma_mmapped
+0804d184 l     O .bss	00000004              is_ko_inserted
+0804d188 l     O .bss	00000004              is_driver_initialized
+080488a4 l     F .text	000001c8              exec_shell_cmd
+08048a6c l     F .text	000000cb              show_main_menu
+08048b37 l     F .text	00000077              show_continue_or_break_submenu
+08048bae l     F .text	00000065              test_insmod
+08048c13 l     F .text	00000062              test_netlink_receive
+0804c0ec l     O .data	00000004              test_pattern_1
+08048c75 l     F .text	000000b8              test_netlink_send
+08048d2d l     F .text	00000051              test_sysfs_read
+08048d7e l     F .text	0000003d              test_sysfs_write
+08048dbb l     F .text	0000003d              test_procfs_read
+08048df8 l     F .text	0000003d              test_procfs_write
+08048e35 l     F .text	00000022              test_char_device_read
+08048e57 l     F .text	00000022              test_char_device_write
+08048e79 l     F .text	00000042              test_rmmod
+00000000 l    df *ABS*	00000000              yadma_user.c
+0804c100 l     O .data	0000004c              yadmaFileNames
+0804d1a0 l     O .bss	000000b0              yadmaChans
+0804d250 l     O .bss	00000004              yadmaInitialized
+0804c14c l     O .data	00000004              sock_fd
+0804d254 l     O .bss	0000000c              src_addr
+0804d260 l     O .bss	0000000c              dest_addr
+0804d26c l     O .bss	00000004              yadmaIntrKuc
+08048f5c l     F .text	00000035              is_valid_dma_channel
+0804d270 l     O .bss	00000004              slot.3951
+0804a7b2 l     O .rodata	00000016              __FUNCTION__.3969
+0804a79d l     O .rodata	00000015              __FUNCTION__.3978
+0804a788 l     O .rodata	00000015              __FUNCTION__.3987
+0804a779 l     O .rodata	0000000f              __FUNCTION__.3997
+0804a769 l     O .rodata	00000010              __FUNCTION__.4002
+0804a752 l     O .rodata	00000017              __FUNCTION__.4006
+0804a73e l     O .rodata	00000014              __FUNCTION__.4010
+0804a72c l     O .rodata	00000012              __FUNCTION__.4015
+0804a71a l     O .rodata	00000012              __FUNCTION__.4019
+0804a709 l     O .rodata	00000011              __FUNCTION__.4023
+0804a6f6 l     O .rodata	00000013              __FUNCTION__.4027
+0804a6e0 l     O .rodata	00000016              __FUNCTION__.4033
+0804a6d5 l     O .rodata	0000000b              __FUNCTION__.4039
+0804a6c3 l     O .rodata	00000012              __FUNCTION__.4045
+0804a6b0 l     O .rodata	00000013              __FUNCTION__.4051
+0804bf14 l       .ctors	00000000              __init_array_end
+0804bf28 l     O .dynamic	00000000              _DYNAMIC
+0804bf14 l       .ctors	00000000              __init_array_start
+0804bff4 l     O .got.plt	00000000              _GLOBAL_OFFSET_TABLE_
+08049fb0 g     F .text	00000002              __libc_csu_fini
+08049fb2 g     F .text	00000000              .hidden __i686.get_pc_thunk.bx
+0804c080  w      .data	00000000              data_start
+00000000       F *UND*	00000000              printf@@GLIBC_2.0
+00000000       F *UND*	00000000              free@@GLIBC_2.0
+0804930d g     F .text	00000173              MapDmaChannelByProcfs
+00000000       F *UND*	00000000              getchar@@GLIBC_2.0
+00000000       F *UND*	00000000              fgets@@GLIBC_2.0
+08049ac2 g     F .text	00000045              GetChannelPointer
+00000000       F *UND*	00000000              isspace@@GLIBC_2.0
+0804c150 g       *ABS*	00000000              _edata
+0804911f g     F .text	0000009a              Send2KernelByNetLink
+080499cb g     F .text	0000006a              GetCurrentBlockPointer
+00000000       F *UND*	00000000              sleep@@GLIBC_2.0
+08048f91 g     F .text	0000018e              DriverInit
+08049fec g     F .fini	00000000              _fini
+00000000       F *UND*	00000000              popen@@GLIBC_2.1
+00000000       F *UND*	00000000              __stack_chk_fail@@GLIBC_2.4
+08049e50 g     F .text	00000060              FinishCurrentSlot
+0804bf20 g     O .dtors	00000000              .hidden __DTOR_END__
+00000000       F *UND*	00000000              getpid@@GLIBC_2.0
+08049b07 g     F .text	00000083              SwitchToNextBlock
+00000000       F *UND*	00000000              malloc@@GLIBC_2.0
+0804c080 g       .data	00000000              __data_start
+00000000       F *UND*	00000000              puts@@GLIBC_2.0
+08049272 g     F .text	0000004d              WaitPeriodicInterrupt
+08049480 g     F .text	00000173              MapDmaChannelBySysfs
+00000000  w      *UND*	00000000              __gmon_start__
+0804c084 g     O .data	00000000              .hidden __dso_handle
+00000000       F *UND*	00000000              open@@GLIBC_2.0
+00000000       F *UND*	00000000              pclose@@GLIBC_2.1
+0804a00c g     O .rodata	00000004              _IO_stdin_used
+00000000       F *UND*	00000000              feof@@GLIBC_2.0
+00000000       F *UND*	00000000              mmap@@GLIBC_2.0
+0804981d g     F .text	000000e8              GetSlotPointer
+00000000       F *UND*	00000000              __libc_start_main@@GLIBC_2.0
+08049ced g     F .text	0000007b              GetCurrentSlotPointer
+08049f40 g     F .text	00000061              __libc_csu_init
+00000000       F *UND*	00000000              bind@@GLIBC_2.0
+0804d274 g       *ABS*	00000000              _end
+00000000       F *UND*	00000000              __errno_location@@GLIBC_2.0
+00000000       F *UND*	00000000              strncpy@@GLIBC_2.0
+08049766 g     F .text	000000b7              UnmapDmaChannel
+080487f0 g     F .text	00000000              _start
+0804a008 g     O .rodata	00000004              _fp_hw
+0804c150 g       *ABS*	00000000              __bss_start
+08049b8a g     F .text	0000008a              SwitchToNextSlot
+08048ebb g     F .text	0000009e              main
+00000000       F *UND*	00000000              strnlen@@GLIBC_2.0
+08049a35 g     F .text	0000008d              GetNextBlockPointer
+00000000       F *UND*	00000000              munmap@@GLIBC_2.0
+08049d68 g     F .text	000000e8              FinishSlot
+00000000       F *UND*	00000000              sendmsg@@GLIBC_2.0
+08049905 g     F .text	000000c6              GetBlockPointer
+00000000  w      *UND*	00000000              _Jv_RegisterClasses
+00000000       F *UND*	00000000              recvmsg@@GLIBC_2.0
+00000000       F *UND*	00000000              sprintf@@GLIBC_2.0
+080495f3 g     F .text	00000173              MapDmaChannelByDevfs
+00000000       F *UND*	00000000              socket@@GLIBC_2.0
+08049eb0 g     F .text	0000008f              SetKernelBlockSlot
+080485f8 g     F .init	00000000              _init
+00000000       F *UND*	00000000              close@@GLIBC_2.0
+080491b9 g     F .text	000000b9              RecvFromKernelFromNetLink
+08049c14 g     F .text	000000d9              GetNextSlotPointer
+080492bf g     F .text	0000004e              DriverRemove
+
+
