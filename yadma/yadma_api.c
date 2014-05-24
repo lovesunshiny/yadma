@@ -86,7 +86,7 @@ bool_t StartBoard( void )
 
     RegPair *rp = (RegPair*)bop->data;
     rp->reg = REG_ROUTE_AND_CTRL;
-    rp->value = 0x12001; //TODO: value to stop board
+    rp->value = 0x12011; //TODO: value to stop board
 
 	rp++;
 	rp->reg = REG_INT_MASK_AND_SLOTS;

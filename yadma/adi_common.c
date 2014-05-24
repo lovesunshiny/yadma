@@ -50,7 +50,7 @@ void BlockWrite(u32 reg, u32 freq)
 
 void SPIWrite(u32 reg, u32 val)
 {
-    if(reg > REG_ADI_END_OFFSET-REG_ADI_START_OFFSET) {
+    if(reg > (REG_ADI_END_OFFSET-REG_ADI_START_OFFSET)) {
         log_verbose("Over the ADI reigster's range %x!\n", reg);
         return -1;
     }
@@ -63,7 +63,7 @@ void SPIWrite(u32 reg, u32 val)
     } else {
         return;
     }
-
+#ifdef CHECK_WRITE_OK
     u32 status, i = 0;
     do {
         i++;
@@ -77,17 +77,20 @@ void SPIWrite(u32 reg, u32 val)
     if(i == MAX_POLL) {
         log_verbose("Write: over the ADI poll count.\n");
     }
+#else
+   udelay(1000);
+#endif
 }
 
 int SPIReadMultileBytes(u32 reg, u32 num)
 {
-    if(reg > REG_ADI_END_OFFSET-REG_ADI_START_OFFSET) {
+    if(reg > (REG_ADI_END_OFFSET-REG_ADI_START_OFFSET)) {
         log_verbose("Over the ADI reigster's range %x!\n", reg);
         return -1;
     }
 
 	int start = reg - num;
-    if(start < -1 || start > REG_ADI_END_OFFSET -REG_ADI_START_OFFSET) {
+    if(start < -1 || start > (REG_ADI_END_OFFSET -REG_ADI_START_OFFSET)) {
         log_verbose("Over the ADI reigster's range (reg = %x, num = %d)!\n", reg, num);
         return -1;
     }

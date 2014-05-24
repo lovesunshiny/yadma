@@ -120,7 +120,7 @@ typedef struct privData {
 void yadma_write_ctrl_bar(int offset, u32 value);
 
 extern PrivateDataStru* yadmaPrivData;
-extern struct semaphore privDataLock;
+extern struct mutex privDataLock;
 
 /* mmap one time for small memory allocation channels */
 int yadma_slot_based_channel_mmap(int ch, struct vm_area_struct *vma);

@@ -110,7 +110,7 @@ static void yadma_demo(unsigned long __opaque);
 static void  frame_report(unsigned long data);
 char the_tasklet_data[]="my_tasklet_function was called";
 DECLARE_TASKLET( the_tasklet, frame_report, (unsigned long) &the_tasklet_data );
-DECLARE_MUTEX(privDataLock);
+DEFINE_MUTEX(privDataLock);
 static struct workqueue_struct *yadmaWorkQue;
 static struct work_struct *yadmaWork;
 
@@ -1050,7 +1050,7 @@ static void netlink_data_ready (struct sk_buff *__skb)
 	struct nlmsghdr *nlh = NULL;
 	struct sk_buff *skb;
 
-	down(&privDataLock);
+	mutex_lock(&privDataLock);
 	skb = skb_get (__skb);
 
 	if(skb->len >= NLMSG_SPACE(0))
@@ -1112,7 +1112,7 @@ static void netlink_data_ready (struct sk_buff *__skb)
 
 	/* A kernel thread is waiting for message coming down from user-space */
 	// skb = skb_recv_datagram(nl_sk, 0, 0, &err);
-	up(&privDataLock);
+	mutex_unlock(&privDataLock);
 }
 
 static void netlink_init(void)
@@ -1185,9 +1185,9 @@ static void netlink_send_to_userspace(KucMessage*kuc, bool multicast)
 
 static void yadmaWorkFunc(struct work_struct *work)
 {
-    down(&privDataLock);
+    mutex_lock(&privDataLock);
     frame_report(work);
-    up(&privDataLock);
+    mutex_unlock(&privDataLock);
 }
 #include "ad9361_api.h"
 static int __init yadma_init(void)
@@ -1209,7 +1209,7 @@ static int __init yadma_init(void)
     /*  AD9362 driver init */
     //ad9361_init(init_param);
     
-    down(&privDataLock);
+    mutex_lock(&privDataLock);
     /* Allocate space for holding driver-private data - for storing driver
      * context.
      */
@@ -1234,7 +1234,7 @@ static int __init yadma_init(void)
     } else {
         log_verbose("No memory for allocating work queue\n");
     }
-    up(&privDataLock);
+    mutex_unlock(&privDataLock);
 #ifdef DEMO_IN_TIMER
   init_timer(&demo_timer);
   demo_timer.expires=jiffies + 5*HZ;
@@ -1266,7 +1266,7 @@ static void __exit yadma_cleanup(void)
     destroy_workqueue(yadmaWorkQue);
     //kfree(yadmaWork);
 
-    down(&privDataLock);
+    mutex_lock(&privDataLock);
     /* Then, unregister driver with PCI in order to free up resources */
     log_verbose(KERN_INFO "pci unregister driver.\n");
     pci_unregister_driver(&yadma_driver);
@@ -1293,7 +1293,7 @@ static void __exit yadma_cleanup(void)
 		kfree(yadmaPrivData);
 		yadmaPrivData = NULL;
     }
-    up(&privDataLock);
+    mutex_unlock(&privDataLock);
 }
 
 static void yadma_stats(unsigned long __opaque)
@@ -1413,7 +1413,7 @@ static void  frame_report(unsigned long data)
         in->timing_est = yadma_read_ctrl_bar(REG_TIMING_EST);     /*REVISIT duanchenyi*/
         
 		if(max > YADMA_BLOCK_COUNT || n > YADMA_BLOCK_COUNT) {
-			log_verbose("Wrong register max = %d, n = %d", max, n);
+			//log_verbose("Wrong register max = %d, n = %d", max, n);
 			kfree(kuc);
 			return;
 		}
@@ -1458,10 +1458,10 @@ static irqreturn_t yadma_interrupt_handler(int irq, void *dev_id)
 {
 
    struct pci_dev *dev = dev_id;
-
+   static debug_counter = 0;
    // 1. Cause race condition
    // tasklet_schedule( &the_tasklet );
-    if(yadmaWorkQue && yadmaWork)
+    if(yadmaWorkQue && yadmaWork && debug_counter++ < 100)
         queue_work(yadmaWorkQue, yadmaWork);
 
   /* Handle DMA and any user interrupts */

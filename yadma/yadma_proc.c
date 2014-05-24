@@ -91,8 +91,8 @@ static int proc_write_foo(struct file *file,  const char *buffer,  unsigned long
 #define DUMP_PROC_WRITE \
 	log_verbose(KERN_INFO "%s filp=0x%p, buffer = 0x%p, count = %ld\n", __FUNCTION__, file, buffer, count);
 
-#define MODULE_IN_USE_LOCK down(&privDataLock)
-#define MODULE_UNLOCK up(&privDataLock);
+#define MODULE_IN_USE_LOCK mutex_lock(&privDataLock)
+#define MODULE_UNLOCK mutex_unlock(&privDataLock);
 
 static int ProcReadTxRxMem(char *page, char **start, off_t off, int count, int *eof, void *data)
 {
