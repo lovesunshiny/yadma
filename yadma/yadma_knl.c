@@ -1185,9 +1185,10 @@ static void netlink_send_to_userspace(KucMessage*kuc, bool multicast)
 
 static void yadmaWorkFunc(struct work_struct *work)
 {
-    mutex_lock(&privDataLock);
-    frame_report(work);
-    mutex_unlock(&privDataLock);
+    if(0 == mutex_trylock(&privDataLock)) {
+        frame_report(work);
+        mutex_unlock(&privDataLock);
+    }
 }
 #include "ad9361_api.h"
 static int __init yadma_init(void)
@@ -1456,12 +1457,15 @@ static irqreturn_t yadma_interrupt_handler(int irq, void *dev_id, struct pt_regs
 static irqreturn_t yadma_interrupt_handler(int irq, void *dev_id)
 #endif
 {
-
    struct pci_dev *dev = dev_id;
-   static debug_counter = 0;
+   static unsigned int counter = 0;
+   counter++;
+   if(counter % 10000 == 0)
+	printk("interrupt counter is: %d\n");
+
    // 1. Cause race condition
    // tasklet_schedule( &the_tasklet );
-    if(yadmaWorkQue && yadmaWork && debug_counter++ < 100)
+    if(yadmaWorkQue && yadmaWork)
         queue_work(yadmaWorkQue, yadmaWork);
 
   /* Handle DMA and any user interrupts */
